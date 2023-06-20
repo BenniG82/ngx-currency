@@ -192,9 +192,17 @@ export class InputService {
     }
 
     changeToNegative(): void {
-        if (this.options.allowNegative /*&& this.rawValue != ""*/ && this.rawValue.charAt(0) != "-" /*&& this.value != 0*/) {
+        if (this.options.allowNegative /*&& this.rawValue != ""*/ && this.rawValue.charAt(0) != '-' /*&& this.value != 0*/) {
             // Apply the mask to ensure the min and max values are enforced.
-            this.rawValue = this.applyMask(false, "-" + (this.rawValue ? this.rawValue : '0'));
+            this.rawValue = this.applyMask(false, '-' + (this.rawValue ? this.rawValue : '0'));
+
+            if (this.options.inputMode === CurrencyMaskInputMode.NATURAL && this.value === 0) {
+                // If the value is 0, the raw value now looks like "$ -0", "$ -0.00", "-0 €", "-0.00 €" etc.
+                // In NATURAL mode we want to continue typing the number in front of the decimal point.
+                // So set the cursor just behind the first zero ('|' marks the new cursor position):
+                // "$ -0|", "$ -0|.00", "-0| €", "-0|.00 €"
+                this.updateFieldValue(this.rawValue.indexOf('0') + 1);
+            }
         }
     }
 
